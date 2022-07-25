@@ -8,12 +8,12 @@ string.punctuation += "»"
 string.punctuation += "—"
 
 
-# Определение функции TF
+# TF function definition
 def TF(x):
    #return np.log(x + 1)
    return x
 
-# Функция, создающая из предложения массив слов, обработанных морфологическим анализатором.
+# A function that creates from a sentence an array of words processed by a morphological analyzer.
 def senttoterm(sent):
     terms = []
     temp = sent.split()
@@ -31,7 +31,7 @@ def senttoterm(sent):
             terms.append(q)
     return terms
 
-# Функция, создающая словарь слов из общего массива слов, обработанных морфологическим анализатором. Ключом является слово, значением является частота этого слова
+# A function that creates a dictionary of words from a common array of words processed by the morphological analyzer. The key is the word, the value is the frequency of that word
 def arrtodict(terms):
     word_list = {}
     for word in terms:
@@ -41,12 +41,12 @@ def arrtodict(terms):
             word_list[word] = 1
     return word_list
 
-# Пути исходных статей Википедии
+# Paths of original Wikipedia articles
 file1 = "C:\\Users\\Frederik\\Desktop\\1.txt"
 file2 = "C:\\Users\\Frederik\\Desktop\\2.txt"
 file3 = "C:\\Users\\Frederik\\Desktop\\3.txt"
 
-# Считывание всех файлов и сбор их в один массив
+# Read all files and collect them into one array
 a = open(file1, encoding="utf-8")
 a = a.readlines()
 b = open(file2, encoding="utf-8")
@@ -54,26 +54,26 @@ b = b.readlines()
 c = open(file3, encoding="utf-8")
 c = c.readlines()
 a = a + b + c
-# Удаление пустых строк из массива предложений
+# Remove empty strings from sentence array
 a = [s for s in a if s != "\n"]
-# Общее число предложений
+# Total number of sentences
 N = len(a)
 s = []
 col = []
-# Цикл создающий общий массив слов и словари для каждого предложения (Doc1, Doc2 ...)
+# Loop creating a common array of words and dictionaries for each sentence (Doc1, Doc2 ...)
 for i in a:
     t = senttoterm(i)
     col.append(arrtodict(t))
     s += senttoterm(i)
 df = arrtodict(s)
-# Создание множества всех слов
+# Create a set of all words
 dict = set(s)
-# Создание словаря слов idf, в котором ключом является слово, а значением idf этого слова, посчитанного по формуле N / df[i]
+# Creating a dictionary of words idf, in which the key is the word, and the value of the idf of this word, calculated by the formula N / df[i]
 idf = {}
 for i in df:
     idf[i] = N / df[i]
 
-# Создание матрицы tf.idf, в котором каждая строка - это предложение, а стобец - слово
+# Create a tf.idf matrix where each row is a sentence and each column is a word
 Docs = np.zeros((N, len(dict)))
 
 for i in range(N):
@@ -85,19 +85,19 @@ for i in range(N):
             Docs[i][k] = 0
         k += 1
 
-# Нормировка полученных векторов
+# Normalization of the resulting vectors
 for i in range(N):
     Docs[i] = Docs[i] / np.linalg.norm(Docs[i])
 
-# Строка с запросом
+# Line with request
 
 #Ask = "Академический словарь литовского языка помогали составлять два президента, архиепископ, офтальмолог и ещё несколько сотен человек."
 #Ask = "Один из главных злодеев трилогии приквелов «Звёздных войн» говорит с русским акцентом."
 Ask = "Воспоминания Агаты Кристи об участии в археологических экспедициях в Ираке и Сирии долго не хотели печатать."
 
-# Разбиение запроса на термы и создание из них словаря
+# Splitting the query into terms and creating a dictionary from them
 Ask = arrtodict(senttoterm(Ask))
-# Создание вектора запроса
+# Create a request vector
 A = []
 for i in dict:
     if i in Ask:
@@ -105,18 +105,18 @@ for i in dict:
     else:
         A.append(0)
 
-# Нормировка вектора запроса
+# Normalization of the query vector
 A = np.array(A)
 A = A / np.linalg.norm(A)
 
-# Массив содержащий все веса
+# Array containing all weights
 cos = []
 
-# Подсчет весов для каждого предложения из статей
+# Calculate weights for each sentence from articles
 for i in range(N):
     cos.append(np.dot(A, Docs[i])/(np.linalg.norm(A) * np.linalg.norm(Docs[i])))
 
-# Вывод 1/5 всех предложений в порядке уменьшения веса
+# Output 1/5 of all sentences in order of decreasing weight
 for i in range(10):
     print(a[cos.index(max(cos))], max(cos))
     a.pop(cos.index(max(cos)))
